@@ -11,6 +11,6 @@ connectDatabase().then(async () => {
   await seedAdmin();
 
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port At ${PORT}`);
   });
 });
