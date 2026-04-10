@@ -7,6 +7,7 @@ const {
   verifyPattern,
   verifyOtp,
   submitHoneypotOtp,
+  logoutUser,
   getCurrentUser
 } = require("../controllers/authController");
 
@@ -18,6 +19,7 @@ router.post("/analyze-risk", analyzeRisk);
 router.post("/verify-pattern", verifyPattern);
 router.post("/verify-otp", verifyOtp);
 router.post("/honeypot-otp", submitHoneypotOtp);
+router.post("/logout", logoutUser);
 router.get("/me", authMiddleware, getCurrentUser);
 
 module.exports = router;
