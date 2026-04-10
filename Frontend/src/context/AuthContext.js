@@ -4,57 +4,69 @@ import api from "../services/api";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
-  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(user));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setUser(null);
-      return;
-    }
+    let isMounted = true;
 
     async function loadCurrentUser() {
-      setLoading(true);
       try {
-        const response = await api.get("/auth/me", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get("/auth/me");
+
+        if (!isMounted) {
+          return;
+        }
+
         setUser(response.data.user);
+        setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(response.data.user));
       } catch (error) {
-        logout();
+        if (!isMounted) {
+          return;
+        }
+
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem("user");
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     loadCurrentUser();
-  }, [token]);
 
-  function login(nextToken, nextUser) {
-    setToken(nextToken);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  function login(nextUser) {
     setUser(nextUser);
-    localStorage.setItem("token", nextToken);
+    setIsAuthenticated(true);
     localStorage.setItem("user", JSON.stringify(nextUser));
   }
 
-  function logout() {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("pendingAuth");
+  async function logout() {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("user");
+      localStorage.removeItem("pendingAuth");
+    }
   }
 
-  return (
-    <AuthContext.Provider value={{ token, user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

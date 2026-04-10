@@ -8,8 +8,8 @@ function Navbar() {
 
   const isDashboardPage = location.pathname === "/dashboard" || location.pathname === "/admin";
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate("/");
   }
 
