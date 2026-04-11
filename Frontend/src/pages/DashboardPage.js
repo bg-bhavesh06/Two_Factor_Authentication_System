@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
 function DashboardPage() {
-  const { user } = useAuth();
+  const { token, user } = useAuth();
   const [overview, setOverview] = useState({
     devices: [],
     loginHistory: [],
@@ -15,7 +15,9 @@ function DashboardPage() {
   useEffect(() => {
     async function loadOverview() {
       try {
-        const response = await api.get("/security/overview");
+        const response = await api.get("/security/overview", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setOverview(response.data);
       } catch (error) {
         console.error(error);
@@ -25,7 +27,7 @@ function DashboardPage() {
     }
 
     loadOverview();
-  }, []);
+  }, [token]);
 
   return (
     <div className="page-shell">

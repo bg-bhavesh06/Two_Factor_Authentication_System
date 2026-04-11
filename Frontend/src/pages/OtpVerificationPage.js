@@ -47,11 +47,9 @@ function OtpVerificationPage() {
         return;
       }
 
-      if (response.data.user) {
-        login(response.data.user);
-        localStorage.removeItem("pendingAuth");
-        navigate(response.data.user?.role === "admin" ? "/admin" : "/dashboard");
-      }
+      login(response.data.token, response.data.user);
+      localStorage.removeItem("pendingAuth");
+      navigate(response.data.user?.role === "admin" ? "/admin" : "/dashboard");
     } catch (err) {
       const nextStep = err.response?.data?.nextStep;
 

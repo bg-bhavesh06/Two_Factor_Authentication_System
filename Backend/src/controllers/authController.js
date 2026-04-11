@@ -6,6 +6,7 @@ const SecurityLog = require("../models/SecurityLog");
 const { buildFingerprint, getClientIp } = require("../utils/deviceUtils");
 const { calculateRisk } = require("../utils/riskEngine");
 const {
+  generateAccessToken,
   generatePendingToken,
   verifyPendingToken
 } = require("../utils/tokenUtils");
@@ -27,30 +28,6 @@ function generatePattern() {
 function isUnusualLoginTime() {
   const currentHour = new Date().getHours();
   return currentHour >= 0 && currentHour < 5;
-}
-
-function regenerateSession(req) {
-  return new Promise((resolve, reject) => {
-    req.session.regenerate((error) => {
-      if (error) {
-        return reject(error);
-      }
-
-      return resolve();
-    });
-  });
-}
-
-function saveSession(req) {
-  return new Promise((resolve, reject) => {
-    req.session.save((error) => {
-      if (error) {
-        return reject(error);
-      }
-
-      return resolve();
-    });
-  });
 }
 
 async function analyzeRisk(req, res) {
@@ -312,19 +289,12 @@ async function verifyPattern(req, res) {
       return res.status(401).json({ message: "Pattern verification failed." });
     }
 
+    const token = generateAccessToken(user);
     const fingerprintHash = buildFingerprint(deviceInfo);
 
     await upsertTrustedDevice({ user, deviceInfo, fingerprintHash });
     user.pendingAuth = null;
     await user.save();
-    await regenerateSession(req);
-    req.session.user = {
-      userId: user._id.toString(),
-      email: user.email,
-      username: user.username,
-      role: user.role || "user"
-    };
-    await saveSession(req);
 
     await createSecurityLog({
       userId: user._id,
@@ -335,6 +305,7 @@ async function verifyPattern(req, res) {
 
     return res.json({
       message: "Pattern verified successfully.",
+      token,
       user: formatUser(user),
       nextStep: user.role === "admin" ? "admin" : "dashboard"
     });
@@ -493,25 +464,6 @@ async function submitHoneypotOtp(req, res) {
   }
 }
 
-async function logoutUser(req, res) {
-  try {
-    if (!req.session) {
-      return res.json({ message: "Logged out successfully." });
-    }
-
-    req.session.destroy((error) => {
-      if (error) {
-        return res.status(500).json({ message: "Logout failed.", error: error.message });
-      }
-
-      res.clearCookie(process.env.SESSION_NAME || "advanced.sid");
-      return res.json({ message: "Logged out successfully." });
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Logout failed.", error: error.message });
-  }
-}
-
 async function getCurrentUser(req, res) {
   const user = await User.findById(req.user.userId).select("-password -pendingAuth.otpHash");
 
@@ -623,7 +575,6 @@ module.exports = {
   verifyPattern,
   verifyOtp,
   submitHoneypotOtp,
-  logoutUser,
   getCurrentUser,
   getSecurityOverview,
   getAdminOverview,

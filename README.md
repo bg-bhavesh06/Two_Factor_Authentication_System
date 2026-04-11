@@ -32,19 +32,15 @@ README.md
 ## Features
 
 ### Low risk
-
 - Silent login
 
 ### Medium risk
-
 - Visual pattern verification
 
 ### High risk
-
 - Contextual OTP verification
 
 ### Honeypot defense
-
 - After repeated OTP failures, the user is redirected to a fake OTP screen
 - The system logs suspicious behavior silently
 
@@ -106,8 +102,3 @@ Backend: `http://localhost:5000`
 - For academic demonstration, the backend returns the OTP in development mode.
 - Trusted devices are stored after successful verification.
 
-//Patners
-
-1. Vedant Rathod
-2. luv Yadav
-3. Bhavesh Ganwani

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
 function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { token, user } = useAuth();
   const [overview, setOverview] = useState({
     users: [],
     devices: [],
@@ -17,7 +17,9 @@ function AdminDashboardPage() {
 
   async function loadOverview() {
     try {
-      const response = await api.get("/security/admin-overview");
+      const response = await api.get("/security/admin-overview", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setOverview(response.data);
     } catch (error) {
       console.error(error);
@@ -28,7 +30,7 @@ function AdminDashboardPage() {
 
   useEffect(() => {
     loadOverview();
-  }, []);
+  }, [token]);
 
   async function handleRemoveUser(userId) {
     const confirmed = window.confirm("Do you want to remove this user account?");
@@ -40,7 +42,9 @@ function AdminDashboardPage() {
     setActionError("");
 
     try {
-      const response = await api.delete(`/security/users/${userId}`);
+      const response = await api.delete(`/security/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setActionMessage(response.data.message);
       await loadOverview();
     } catch (error) {

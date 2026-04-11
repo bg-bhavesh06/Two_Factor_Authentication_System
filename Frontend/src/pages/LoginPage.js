@@ -47,8 +47,8 @@ function LoginPage() {
       const response = await api.post("/auth/login", payload);
       const data = response.data;
 
-      if (data.user) {
-        login(data.user);
+      if (data.token) {
+        login(data.token, data.user);
         redirectAfterLogin(data.user);
         return;
       }
