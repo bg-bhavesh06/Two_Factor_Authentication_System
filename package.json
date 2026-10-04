@@ -1,0 +1,14 @@
+{
+  "name": "advanced-2fa-security-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Final-year MERN project: Advanced Two-Factor Authentication System with Intelligent and Invisible Security Mechanisms",
+  "scripts": {
+    "install:all": "npm install --prefix Backend && npm install --prefix Frontend",
+    "backend": "npm run dev --prefix Backend",
+    "frontend": "npm run dev --prefix Frontend",
+    "server": "npm run dev --prefix Backend",
+    "client": "npm run dev --prefix Frontend",
+    "build": "npm run build --prefix Frontend"
+  }
+}
